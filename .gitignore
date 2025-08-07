@@ -1,0 +1,164 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# ML Models and Data
+*.pkl
+*.joblib
+*.h5
+*.model
+*.weights
+training_stats.pkl
+model.pkl
+scaler.pkl
+
+# Terraform
+infrastructure/terraform/.terraform/
+infrastructure/terraform/.terraform.lock.hcl
+infrastructure/terraform/terraform.tfstate
+infrastructure/terraform/terraform.tfstate.backup
+infrastructure/terraform/terraform.tfvars
+infrastructure/terraform/.terraform.tfvars.backup
+infrastructure/terraform/*.tfplan
+
+# AWS
+.aws/
+*.pem
+*.key
+
+# Docker
+.dockerignore
+Dockerfile.tmp
+*.tar
+
+# Logs
+*.log
+logs/
+*.out
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Backup files
+*.bak
+*.backup
+
+# Node modules (if any)
+node_modules/
+
+# Environment variables
+.env.local
+.env.production
+
+# Test artifacts
+test-results/
+coverage/
+*.coverage
+.nyc_output
+
+# ZIP files
+*.zip
+model-api.zip
+
+# CloudFormation
+*.template
+
+# Local development
+local/
+.local/
+
+# Secrets
+secrets/
+*.secret
+*.secrets
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Generated documentation
+docs/_build/
+
+# MacOS
+.AppleDouble
+.LSOverride
+
+# Windows
+*.exe
+*.msi
+*.msm
+*.msp
+
+# Linux
+*~
+
+# Vim
+*.swp
+*.swo
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Local testing
+test_results.json
+performance_results.json

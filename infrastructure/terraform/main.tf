@@ -1,4 +1,4 @@
-# infrastructure/terraform/main.tf - Clean S3 Version
+# infrastructure/terraform/main.tf - Container-based Lambda
 
 terraform {
   required_version = ">= 1.0"
@@ -17,6 +17,38 @@ provider "aws" {
 # Data sources
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
+
+# ECR Repository for Lambda container images
+resource "aws_ecr_repository" "lambda_repo" {
+  name = "${var.project_name}-lambda"
+  
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+  
+  tags = var.tags
+}
+
+resource "aws_ecr_lifecycle_policy" "lambda_repo_policy" {
+  repository = aws_ecr_repository.lambda_repo.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 5 images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 5
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
 
 # IAM Role for Lambda
 resource "aws_iam_role" "lambda_role" {
@@ -79,32 +111,20 @@ resource "aws_cloudwatch_log_group" "lambda_logs" {
   tags              = var.tags
 }
 
-# Lambda Function using S3 as source
+# Lambda Function using container image
 resource "aws_lambda_function" "model_api" {
-  s3_bucket     = aws_s3_bucket.lambda_artifacts.id
-  s3_key        = aws_s3_object.lambda_zip.key
   function_name = "${var.project_name}-predictor"
   role         = aws_iam_role.lambda_role.arn
-  handler      = "lambda_handler.lambda_handler"
-  runtime      = "python3.9"
+  package_type = "Image"
+  image_uri    = "${aws_ecr_repository.lambda_repo.repository_url}:v2"
   timeout      = 30
-  memory_size  = 512
+  memory_size  = 1024
   
-  # Use AWS official managed layers (or comment out to bundle everything)
-  layers = [
-    "arn:aws:lambda:${data.aws_region.current.name}:336392948345:layer:AWSSDKPandas-Python39:8"
-  ]
-  
-  # Alternative: No layers - bundle everything (uncomment if layers don't work)
-  # layers = []
-
   environment {
     variables = {
       DRIFT_THRESHOLD = var.drift_threshold
     }
   }
-
-  source_code_hash = aws_s3_object.lambda_zip.etag
 
   depends_on = [
     aws_iam_role_policy_attachment.lambda_basic,
@@ -112,6 +132,10 @@ resource "aws_lambda_function" "model_api" {
   ]
 
   tags = var.tags
+  
+  lifecycle {
+    ignore_changes = [image_uri]
+  }
 }
 
 # API Gateway
@@ -150,7 +174,6 @@ resource "aws_api_gateway_integration" "lambda_integration" {
 
 resource "aws_api_gateway_deployment" "api_deployment" {
   rest_api_id = aws_api_gateway_rest_api.model_api.id
-  stage_name  = var.api_stage
 
   depends_on = [
     aws_api_gateway_method.predict_post,
@@ -160,6 +183,14 @@ resource "aws_api_gateway_deployment" "api_deployment" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+resource "aws_api_gateway_stage" "api_stage" {
+  deployment_id = aws_api_gateway_deployment.api_deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.model_api.id
+  stage_name    = var.api_stage
+
+  tags = var.tags
 }
 
 # Lambda permission for API Gateway
